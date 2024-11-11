@@ -1,11 +1,11 @@
 require("dotenv").config();
-
-const app = require("express")();
+const express = require("express")
+const app = express();
 const mongoose = require('mongoose')
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
-const PORT = process.env.PORT || 5000;
+const port = process.env.PORT || 5000;
 
 //define user model schema
 const userSchema = new mongoose.Schema({
@@ -33,7 +33,7 @@ const itemSchema = new mongoose.Schema({
     userid : {type: mongoose.Schema.Types.ObjectId, ref: "User", required: true}
 })
 
-const Item = mongoose.model("Item", userSchema)
+const Item = mongoose.model("Item", itemSchema)
 const User = mongoose.model("User", userSchema)
 
 //connect to database
@@ -46,7 +46,7 @@ function auth (req, res, next) {
 
 	try {
 		const decoded = jwt.verify(token, process.env.JWT_SECRET);
-		req.id = decoded
+		req.id = decoded.id
 		next();
 	} catch (error) {
 		res.status(401).json({ message: "Unauthorized" });
@@ -60,7 +60,7 @@ app.use('/todos', auth)
 
 //register user
 app.post("/register", async (req, res) => {
-    const {name, email, body} = req.body
+    const {name, email, password} = req.body
 
     //check if email is already being used
     let user = await User.findOne({ email })
@@ -92,7 +92,7 @@ app.post("/login", async (req, res) => {
     //check if this is the correct email and password
     let user = await User.findOne({email})
     
-    if (!user || !(await user.comparePassword(passowrd))) {
+    if (!user || !(await user.comparePassword(password))) {
         return res.status(400).send("Invalid email or password")
     }
 
@@ -110,7 +110,7 @@ app.post("/todos", async (req, res) => {
     //create new Item
     const item = new Item({title, description, userid: req.id})
     await item.save()
-    res.status(201).json(item)
+    res.status(201).json({title : title, description : description, id : req.id})
 })
 
 //update item
@@ -124,7 +124,7 @@ app.put('/todos/:id', async (req,res) => {
     }
 
     //check if proper user
-    if (item.userid !== req.id) {
+    if (item.userid != req.id) {
         return res.status(403).send("Forbidden")
     }
 
@@ -138,36 +138,28 @@ app.put('/todos/:id', async (req,res) => {
 //delete item   
 app.delete("/todos/:id", async (req, res) => {
     const {id} = req.params
-    //check if item exists
-    const item = await Item.findById(id)
-    if (!item) {
-        return res.status(404).send("Item not found")
-    }
-
-    //check if proper user
-    if (item.userid !== req.id) {
+    //delete item if it belongs to user
+    result = await Item.deleteOne({_id: id, userid: req.id})
+    if (result.deletedCount === 0) {
         return res.status(403).send("Forbidden")
     }
-    
-    //delete item
-    await item.remove()
+
     res.sendStatus(204)
 })
 
 //get items with pagination
 app.get("/todos", async (req, res) => {
-    const {page, limit} = req.query
-    page = Number.parseInt(page)
-    limit = Number.parseInt(limit)
-    const items = await Todo.find({user : req.id})
+    const page = Number.parseInt(req.query.page)
+    const limit = Number.parseInt(req.query.limit)
+    let items = await Item.find({userid : req.id})
         .skip((page - 1) * limit)
         .limit(limit)
-        .map(item => {
-            return {id : item.id, description: item.description, title : item.title}
-        })
-    const total = await Todo.countDocuments({user:req.user.id})
+    items = items.map(item => {
+                return {id : item.id, description: item.description, title : item.title}
+            })
+    const total = await Item.countDocuments({userid:req.id})
 
-    res.json({data:items, page, limit , total})
+    res.json({data:items, page, limit, total})
 })
 
 //delete user 
