@@ -46,7 +46,7 @@ function auth (req, res, next) {
 
 	try {
 		const decoded = jwt.verify(token, process.env.JWT_SECRET);
-		req.user = decoded
+		req.id = decoded
 		next();
 	} catch (error) {
 		res.status(401).json({ message: "Unauthorized" });
@@ -61,6 +61,7 @@ app.use('/todos', auth)
 //register user
 app.post("/register", async (req, res) => {
     const {name, email, body} = req.body
+
     //check if email is already being used
     let user = await User.findOne({ email })
 
@@ -85,6 +86,9 @@ app.post("/login", async (req, res) => {
     //sign in with email and password
     const {email, password} = req.body
 
+    if (!email || !password) {
+
+    }
     //check if this is the correct email and password
     let user = await User.findOne({email})
     
@@ -104,25 +108,66 @@ app.post("/login", async (req, res) => {
 app.post("/todos", async (req, res) => {
     const {title, description} = req.body
     //create new Item
-    const item = new Item({title, description, userid: req.user.id})
+    const item = new Item({title, description, userid: req.id})
     await item.save()
     res.status(201).json(item)
 })
 
 //update item
-app.put('/todos/1', async (req,res) => {
+app.put('/todos/:id', async (req,res) => {
     const {title, description} = req.body
+    const { id } = req.params
+    const item = await Item.findById(id)
+    //check if the item exists
+    if (!item) {
+        return res.status(404).send("Item not found")
+    }
 
+    //check if proper user
+    if (item.userid !== req.id) {
+        return res.status(403).send("Forbidden")
+    }
+
+    //update the item
+    item.description = description
+    item.title = title
+    await item.save()
+    res.status(201).json({title : title, description : description, id : id})
 })
 
 //delete item   
-app.delete("/todos/1", async (req, res) => {
+app.delete("/todos/:id", async (req, res) => {
+    const {id} = req.params
+    //check if item exists
+    const item = await Item.findById(id)
+    if (!item) {
+        return res.status(404).send("Item not found")
+    }
 
+    //check if proper user
+    if (item.userid !== req.id) {
+        return res.status(403).send("Forbidden")
+    }
+    
+    //delete item
+    await item.remove()
+    res.sendStatus(204)
 })
 
-//get items
+//get items with pagination
 app.get("/todos", async (req, res) => {
+    const {page, limit} = req.query
+    page = Number.parseInt(page)
+    limit = Number.parseInt(limit)
+    const items = await Todo.find({user : req.id})
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .map(item => {
+            return {id : item.id, description: item.description, title : item.title}
+        })
+    const total = await Todo.countDocuments({user:req.user.id})
 
+    res.json({data:items, page, limit , total})
 })
 
 //delete user 
