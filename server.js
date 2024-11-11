@@ -42,14 +42,14 @@ mongoose.connect(process.env.MONGO_URI)
 //middleware
 function auth (req, res, next) {
 	const token = req.header("Authorization");
-	if (!token) return res.status(401).json({ message: "Auth Error" });
+	if (!token) return res.status(401).json({ message: "Unauthorized" });
 
 	try {
 		const decoded = jwt.verify(token, process.env.JWT_SECRET);
-		req.user = decoded.user;
+		req.user = decoded
 		next();
 	} catch (error) {
-		res.status(401).json({ message: "Invalid Token" });
+		res.status(401).json({ message: "Unauthorized" });
 	}
 };
 
@@ -111,7 +111,8 @@ app.post("/todos", async (req, res) => {
 
 //update item
 app.put('/todos/1', async (req,res) => {
-    
+    const {title, description} = req.body
+
 })
 
 //delete item   
