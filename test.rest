@@ -1,0 +1,54 @@
+// register john doe
+###
+POST https://brayden-todo-151e08866201.herokuapp.com/register
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john3@doe.com",
+  "password": "password"
+}
+
+//login john doe
+###
+POST https://brayden-todo-151e08866201.herokuapp.com/login
+Content-Type: application/json
+
+{
+  "email": "john3@doe.com",
+  "password": "password"
+}
+
+// create to do
+###
+POST https://brayden-todo-151e08866201.herokuapp.com/todos
+Content-Type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3MzFhNjBlNzkyOWEyNDk1MTljNjdlZCIsImlhdCI6MTczMTMwNzA5MCwiZXhwIjoxNzMxMzkzNDkwfQ.BpYQblZE47hli_TkDS7POSDxfZ3_DZqToETK5_fy_QI
+
+{
+  "title": "Buy groceries",
+  "description": "Buy milasdask, eggs, and bread"
+}
+
+
+// change to do
+###
+PUT https://brayden-todo-151e08866201.herokuapp.com/todos/6731a4e2ed172bc3f5a720f8
+Content-Type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3MzFhNDk2ZWQxNzJiYzNmNWE3MjBlZiIsImlhdCI6MTczMTMwNjY5NiwiZXhwIjoxNzMxMzkzMDk2fQ.B9SJkT_3WhLPLKrtDVTD7lz4SqNvu84MPwAx3ozn1Jw
+
+{
+  "title": "Buy groceries",
+  "description": "Buy milk, eggs, bread, and cheese"
+}
+
+//delete to do
+###
+DELETE https://brayden-todo-151e08866201.herokuapp.com/todos/6731a4e2ed172bc3f5a720fa
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3MzFhNDk2ZWQxNzJiYzNmNWE3MjBlZiIsImlhdCI6MTczMTMwNjY5NiwiZXhwIjoxNzMxMzkzMDk2fQ.B9SJkT_3WhLPLKrtDVTD7lz4SqNvu84MPwAx3ozn1Jw
+
+// get pagiination
+###
+GET https://brayden-todo-151e08866201.herokuapp.com/todos?page=7&limit=2
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3MzFhNjBlNzkyOWEyNDk1MTljNjdlZCIsImlhdCI6MTczMTMwNzA5MCwiZXhwIjoxNzMxMzkzNDkwfQ.BpYQblZE47hli_TkDS7POSDxfZ3_DZqToETK5_fy_QI
+
